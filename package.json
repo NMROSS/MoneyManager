@@ -1,0 +1,11 @@
+{
+  "name": "money-manager",
+  "version": "0.1.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron-prebuilt": "^1.2.5"
+  }
+}
