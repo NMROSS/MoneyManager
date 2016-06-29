@@ -7,8 +7,9 @@
   <script src="codebase/dhtmlx.js"></script>
 
   <script>
-  		var myGrid;
-  		function doOnLoad(){
+  var transactionTag = {};
+  var myGrid;
+  	function doOnLoad(){
         myGrid = new dhtmlXGridObject('gridbox');
         myGrid.setImagePath("codebase/imgs/");
         myGrid.setHeader("Date, POS, Deposit, Withdraw, Total, Type", null, ["text-align:left;","text-align:left;","text-align:right;","text-align:right;","text-align:right;","text-align:right;"]);
@@ -16,11 +17,11 @@
         myGrid.setColTypes("ro,ro,price,price,price,ed");
         myGrid.setInitWidths("150, *, 0, 100, 100, 100")
         myGrid.enableColumnAutoSize(true);
-  			myGrid.enableAutoHeight(true);
+  	myGrid.enableAutoHeight(true);
         myGrid.enableAutoWidth(true);
         myGrid.attachEvent("onEditCell", validateType)
-  			myGrid.init();
-  			myGrid.enableCSVAutoID(true);
+  	myGrid.init();
+  	myGrid.enableCSVAutoID(true);
         myGrid.setSerializationLevel(false,true);
   			myGrid.load("data/acc.xml","xml");
   		}
@@ -74,12 +75,6 @@
         return true; // must be set or caller will reverse the text edit.
       }
 
-      //Need to be read/writen to from file test examples only
-      var transactionTag = {}
-      transactionTag["SUNSHINE BAKE"] = "Food";
-      transactionTag["AP TO LODGE CITY RENTALS LTD Ross NR "] = "Rent";
-      //POS WD MEIWAH TAKEAW
-
       /**
       * Checks if a transaction description is associated with an expensive type
       * already;
@@ -89,7 +84,7 @@
       function typeExists(description){
         return (description in transactionTag);
       }
-      
+
       function newType(description, value){
         if (!typeExists(description)) { // check if type already exists
           transactionTag[description] = value;
