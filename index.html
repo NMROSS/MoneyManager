@@ -34,7 +34,6 @@
       color:"#66ccff",
       container:"spend_graph",
       value:"#data3#",
-      label:"#data3#",
       xAxis:{                                                         //specifies the horizontal scale
         template: function(obj){                                    //defines the template of the X-Axis labels
           return "<span class='quarter'>"+obj.data5+"</span>";
@@ -46,23 +45,27 @@
     myGrid = new dhtmlXGridObject('gridbox');
     myGrid.setImagePath("codebase/imgs/");
     myGrid.setHeader("Date, POS, Deposit, Withdraw, Total, Type", null, ["text-align:left;","text-align:left;","text-align:right;","text-align:right;","text-align:right;","text-align:right;"]);
-    myGrid.setColAlign("left,left,right,right,right, center");
+    myGrid.setColAlign("left,left,right,right,right,center");
     myGrid.setColTypes("ro,ro,price,price,price,ed");
     myGrid.setInitWidths("150, *, 0, 100, 100, 100")
     myGrid.enableColumnAutoSize(true);
     myGrid.enableAutoHeight(false);
     myGrid.enableAutoWidth(true);
-    myGrid.attachEvent("onEditCell", validateType)
+    myGrid.attachEvent("onEditCell", validateType); // Validate edited types.
     myGrid.init();
     myGrid.enableCSVAutoID(true);
     myGrid.setSerializationLevel(false,true);
     myGrid.load("data/acc.xml",function(){
       makePositive(3);
-      group();
+      groupData();
       });
   }
 
 
+  /*
+  * Converts all number in a cell to Positive values
+  * @param Cell ID
+  */
   function makePositive(cell_id){
     myGrid.forEachRow(function(id) {
       let posValue = Math.abs(myGrid.cellById(id, 3).getValue());
@@ -71,12 +74,17 @@
   }
 
 
-  function group(){
+  /*
+  * Groups chart data by transaction type.
+  */
+  function groupData(){
     var field = "data3";
+    var groupConfig = {by: "#data5#", map:{} };
+
     spendChart.clearAll();
     spendChart.parse(myGrid,"dhtmlxgrid");
 
-    var groupConfig = {by: "#data5#", map:{} };
+
     groupConfig.map[field] = ["#"+field+"#","sum"];
     spendChart.group(groupConfig);
     spendChart.define("xAxis",{ template: "#id#" });
@@ -130,8 +138,11 @@
   **/
   function validateType(stage,rId,cInd,nValue,oValue){
     if (stage==2) {
-      let uid = extractUniqueIdentifier(myGrid.cells(rId, 1).getValue());
-      newType(uid, nValue);
+      if (cInd == 5) {  // Check we are only editing the type Column
+        let uid = extractUniqueIdentifier(myGrid.cells(rId, 1).getValue());
+        newType(uid, nValue);
+      }
+
     }
     return true; // must be set or caller will reverse the text edit.
   }
@@ -173,7 +184,7 @@
     </div>
 
     <div id="a2" name="Spending">
-      <div id="spend_graph" style="width:100%;height:250px;border:solid;"></div>
+      <div id="spend_graph" style="width:100%;height:250px;"></div>
     </div>
 
     <div id="a3" name="Tab 3">Content 3</div>
