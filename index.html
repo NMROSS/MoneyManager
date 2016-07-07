@@ -1,7 +1,6 @@
 <html>
 <head>
   <title></title>
-
   <link rel="stylesheet" type="text/css" href="codebase/fonts/font_roboto/roboto.css">
   <link rel="stylesheet" type="text/css" href="codebase/dhtmlx.css">
   <script src="codebase/dhtmlx.js"></script>
@@ -16,6 +15,10 @@
 
   <script>
   var tabBar
+  var transactionTag = {};
+  var myGrid;
+  var spendChart;
+
 
   function tabInit(){
     tabBar = dhtmlXTabBar({
@@ -24,13 +27,8 @@
 
   }
 
-  var transactionTag = {};
-  var myGrid;
-  var spendChart;
 
   function gridInit(){
-
-
     spendChart = new dhtmlXChart({
       view:"bar",
       color:"#66ccff",
@@ -54,20 +52,16 @@
     myGrid.enableColumnAutoSize(true);
     myGrid.enableAutoHeight(false);
     myGrid.enableAutoWidth(true);
-    //myGrid.attachEvent("onEditCell", validateType)
-    myGrid.attachEvent("onEditCell",function(stage){
-				if (stage == 2)
-					validateType();
-				return true;
-			});
+    myGrid.attachEvent("onEditCell", validateType)
     myGrid.init();
     myGrid.enableCSVAutoID(true);
     myGrid.setSerializationLevel(false,true);
     myGrid.load("data/acc.xml",function(){
-      //makePositive(3);
-      spendChart.parse(myGrid,"dhtmlxgrid");
+      makePositive(3);
+      group();
       });
   }
+
 
   function makePositive(cell_id){
     myGrid.forEachRow(function(id) {
@@ -76,20 +70,19 @@
     });
   }
 
+
   function group(){
-    var field = "data3";  //specifies a data property that will be displayed in the chart: 'data2'-  corresponds to profits, 'data3'-  corresponds to losses
-    spendChart.clearAll();                                               //clears the chart from data
-    spendChart.parse(myGrid,"dhtmlxgrid");                                 //loads data from the grid
+    var field = "data3";
+    spendChart.clearAll();
+    spendChart.parse(myGrid,"dhtmlxgrid");
 
-    var groupConfig = {by: "#data5#", map:{} };                     //an object for group configuration
-    //specifies grouping by the total value per year
+    var groupConfig = {by: "#data5#", map:{} };
     groupConfig.map[field] = ["#"+field+"#","sum"];
-    spendChart.group(groupConfig); //groups chart data               //groups chart data
-    spendChart.define("xAxis",{ template: "#id#" });                 //redefines the X-Axis's template to show years as labels. Years are stored as the "id" field in the chart with applied grouping
-
-
+    spendChart.group(groupConfig);
+    spendChart.define("xAxis",{ template: "#id#" });
     spendChart.render();
   }
+
 
   function saveToFileXml(xmlData){
     var fs = require('fs');
@@ -102,6 +95,7 @@
     });
   }
 
+
   /**
   * Creates a unique idenifier from a transaction string.
   * @param {string} transaction
@@ -110,6 +104,7 @@
   function extractUniqueIdentifier(string){
     return(string.replace(/[^a-zA-Z ]/g, ""));
   }
+
 
   /**
   * Checks transactions that have no type set, but a previous transaction
@@ -129,6 +124,7 @@
     })
   }
 
+
   /**
   * Called from onEditCell evnent updates expense type on a transaction
   **/
@@ -140,6 +136,7 @@
     return true; // must be set or caller will reverse the text edit.
   }
 
+
   /**
   * Checks if a transaction description is associated with an expensive type
   * already;
@@ -150,6 +147,7 @@
     return (description in transactionTag);
   }
 
+
   function newType(description, value){
     if (!typeExists(description)) { // check if type already exists
       transactionTag[description] = value;
@@ -157,6 +155,7 @@
       alert('Expense Type already exists');
       transactionTag[description] = value;
     }
+    updateTags(); // update other transactions
   }
   </script>
 </head>
@@ -169,13 +168,14 @@
       <a href="javascript:void(0)" onclick="updateTags()">Update</a>
       <a href="javascript:void(0)" onclick="group();">Group</a>
       <a href="javascript:void(0)" onclick="makePositive(3);">Pos</a>
-      <div id="spend_graph" style="width:100%;height:250px;border:solid;"></div>
-      <div id="gridbox" style="width:100%;height:90%;"></div>
-      <br>
 
+      <div id="gridbox" style="width:100%;height:97%;"></div>
     </div>
 
-    <div id="a2" name="Spending">content 2</div>
+    <div id="a2" name="Spending">
+      <div id="spend_graph" style="width:100%;height:250px;border:solid;"></div>
+    </div>
+
     <div id="a3" name="Tab 3">Content 3</div>
   </div>
 
