@@ -57,7 +57,7 @@
     //myGrid.attachEvent("onEditCell", validateType)
     myGrid.attachEvent("onEditCell",function(stage){
 				if (stage == 2)
-					refresh_chart();
+					validateType();
 				return true;
 			});
     myGrid.init();
@@ -124,6 +124,7 @@
       // update tag if set on another transaction
       if (typeExists(uid)) {
         type.setValue(transactionTag[uid]);
+        console.log(transactionTag[uid]);
       }
     })
   }
