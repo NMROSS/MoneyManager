@@ -7,7 +7,6 @@
   <script src="codebase/dhtmlx.js"></script>
 
   <style>
-      /* important to set width/heigth to 100% for fullscreen init */
       html, body {
           width: 100%;
           height: 100%;
@@ -17,18 +16,35 @@
 
   <script>
   var tabBar
+
   function tabInit(){
     tabBar = dhtmlXTabBar({
       parent: document.body,  // parent container
     });
 
   }
-  </script>
 
-  <script>
   var transactionTag = {};
   var myGrid;
+  var spendChart;
+
   function gridInit(){
+
+
+    spendChart = new dhtmlXChart({
+      view:"bar",
+      color:"#66ccff",
+      container:"spend_graph",
+      value:"#data3#",
+      label:"#data3#",
+      xAxis:{                                                         //specifies the horizontal scale
+        template: function(obj){                                    //defines the template of the X-Axis labels
+          return "<span class='quarter'>"+obj.data5+"</span>";
+        }
+      }
+    });
+
+
     myGrid = new dhtmlXGridObject('gridbox');
     myGrid.setImagePath("codebase/imgs/");
     myGrid.setHeader("Date, POS, Deposit, Withdraw, Total, Type", null, ["text-align:left;","text-align:left;","text-align:right;","text-align:right;","text-align:right;","text-align:right;"]);
@@ -38,13 +54,42 @@
     myGrid.enableColumnAutoSize(true);
     myGrid.enableAutoHeight(false);
     myGrid.enableAutoWidth(true);
-    myGrid.attachEvent("onEditCell", validateType)
+    //myGrid.attachEvent("onEditCell", validateType)
+    myGrid.attachEvent("onEditCell",function(stage){
+				if (stage == 2)
+					refresh_chart();
+				return true;
+			});
     myGrid.init();
     myGrid.enableCSVAutoID(true);
     myGrid.setSerializationLevel(false,true);
-    myGrid.load("data/acc.xml","xml");
+    myGrid.load("data/acc.xml",function(){
+      //makePositive(3);
+      spendChart.parse(myGrid,"dhtmlxgrid");
+      });
   }
 
+  function makePositive(cell_id){
+    myGrid.forEachRow(function(id) {
+      let posValue = Math.abs(myGrid.cellById(id, 3).getValue());
+      myGrid.cellById(id,cell_id).setValue(posValue); //id - the row id
+    });
+  }
+
+  function group(){
+    var field = "data3";  //specifies a data property that will be displayed in the chart: 'data2'-  corresponds to profits, 'data3'-  corresponds to losses
+    spendChart.clearAll();                                               //clears the chart from data
+    spendChart.parse(myGrid,"dhtmlxgrid");                                 //loads data from the grid
+
+    var groupConfig = {by: "#data5#", map:{} };                     //an object for group configuration
+    //specifies grouping by the total value per year
+    groupConfig.map[field] = ["#"+field+"#","sum"];
+    spendChart.group(groupConfig); //groups chart data               //groups chart data
+    spendChart.define("xAxis",{ template: "#id#" });                 //redefines the X-Axis's template to show years as labels. Years are stored as the "id" field in the chart with applied grouping
+
+
+    spendChart.render();
+  }
 
   function saveToFileXml(xmlData){
     var fs = require('fs');
@@ -112,28 +157,24 @@
       transactionTag[description] = value;
     }
   }
-
-  function dumpTransTag(){
-    for(var i in transactionTag) {
-      var value = transactionTag[i];
-      console.log(i+ ": " + value);
-    }
-  }
   </script>
-
 </head>
 
 <body onload="tabInit()">
-  <div id="myTabbar" class="dhtmlxTabBar" style="width:100%;height:100vh;" oninit="gridInit()">
+  <div id="myTabbar" class="dhtmlxTabBar" style="width:100%;height:100vh;" oninit="gridInit();">
 
-    <div id="a1" name="Account 1" style="height:100%;" onload="gridInit()">
-      <div id="gridbox" style="width:100%;height:90%;"></div>
-      <br>
+    <div id="a1" name="Account 1" style="height:100%;">
       <a href="javascript:void(0)" onclick="saveToFileXml(myGrid.serialize())">Save</a>
       <a href="javascript:void(0)" onclick="updateTags()">Update</a>
+      <a href="javascript:void(0)" onclick="group();">Group</a>
+      <a href="javascript:void(0)" onclick="makePositive(3);">Pos</a>
+      <div id="spend_graph" style="width:100%;height:250px;border:solid;"></div>
+      <div id="gridbox" style="width:100%;height:90%;"></div>
+      <br>
+
     </div>
 
-    <div id="a2" name="Spending">Content 2</div>
+    <div id="a2" name="Spending">content 2</div>
     <div id="a3" name="Tab 3">Content 3</div>
   </div>
 
